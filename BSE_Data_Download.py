@@ -15,6 +15,7 @@ def send_conversion_request():
         "dl": "https://www.bseindia.com?"
     }
 
+
     headers = {
         "accept": "*/*",
         "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
