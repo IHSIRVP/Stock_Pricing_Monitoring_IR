@@ -1,4 +1,4 @@
-import panzzdas as pd
+import pandas as pd
 
 # ---------------------------
 # ISIN MAPPING
