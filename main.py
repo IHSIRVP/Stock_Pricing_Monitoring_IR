@@ -1,0 +1,63 @@
+import os 
+from datetime import datetime, timedelta
+from NSE_BHAV_COPY import dataFunct
+import zipfile
+import pandas as pd
+from dateutil.relativedelta import relativedelta
+import time
+from data_prep import data_creation
+from Pricing_Change_Logic import MainEntryLogicFunction
+import Pricing_Change_Logic
+from Market_Cap_Logic import add_marketcap_column
+
+
+def wait_one_minute():
+    print("⏳ Waiting 1 minute before next request...")
+    time.sleep(5)
+
+import zipfile
+import pandas as pd
+
+def load_bhavcopy(zip_path):
+    with zipfile.ZipFile(zip_path, 'r') as z:
+        csv_name = z.namelist()[0]          # first file inside
+        with z.open(csv_name) as f:
+            return pd.read_csv(f)
+
+
+
+if __name__ == "__main__":
+
+    current = datetime(2025, 11, 19)
+    output_path_today, output_path_prev, output_3m, output_6m, output_9m, output_12m = data_creation(current)
+
+    real_estate_df = pd.DataFrame(columns=Pricing_Change_Logic.columns)
+
+    for company, isin in Pricing_Change_Logic.isin_mapping.items():
+        real_estate_df.loc[len(real_estate_df)] = {"Company": company, "ISIN": isin}
+
+    # Load zipped CSVs correctly
+    df_today = load_bhavcopy(output_path_today)
+    df_prev = load_bhavcopy(output_path_prev)
+    df_3month = load_bhavcopy(output_3m)
+    df_6month = load_bhavcopy(output_6m)
+    df_9month = load_bhavcopy(output_9m)
+    df_12month = load_bhavcopy(output_12m)
+    print(f"OUTPUT PATH", output_path_today)
+    print(f"OUTPUT PATH",output_path_prev)
+    print(f"OUTPUT PATH",output_3m)
+    print(f"OUTPUT PATH",output_6m)
+    print(f"OUTPUT PATH",output_9m)
+    print(f"OUTPUT PATH",output_12m)
+    print(df_prev.columns)
+    print(df_prev['FinInstrmId'])
+
+    price_change_df = MainEntryLogicFunction(
+        real_estate_df, 
+        df_today, df_prev, df_3month, df_6month, df_9month, df_12month
+    )
+
+    market_Cap = add_marketcap_column(price_change_df)
+    market_Cap.to_csv('Test_Final_Df.csv')
+
+
