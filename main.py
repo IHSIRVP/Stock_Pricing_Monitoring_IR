@@ -9,7 +9,8 @@ from data_prep import data_creation
 from Pricing_Change_Logic import MainEntryLogicFunction
 import Pricing_Change_Logic
 from Market_Cap_Logic import add_marketcap_column
-
+from BSE_Data_Download import Today_BSE_Bhav
+from Volume_Change_Logic import Today_Volume
 
 def wait_one_minute():
     print("⏳ Waiting 1 minute before next request...")
@@ -52,12 +53,22 @@ if __name__ == "__main__":
     print(df_prev.columns)
     print(df_prev['FinInstrmId'])
 
+
+    ## PRICE CHANGE 
     price_change_df = MainEntryLogicFunction(
         real_estate_df, 
         df_today, df_prev, df_3month, df_6month, df_9month, df_12month
     )
 
-    market_Cap = add_marketcap_column(price_change_df)
-    market_Cap.to_csv('Test_Final_Df.csv')
+    # MARKET CAP | MARKET FF 
+    market_df = add_marketcap_column(price_change_df)
+    market_df.to_csv('Test_Final_Df.csv')
+
+    ## VOLUME
+    Today_BSE_Bhav(date_parm=current)
+
+    Today_Volume(df_today, BSE_bhav_today=None, master_df=price_change_df)
+
+    
 
 

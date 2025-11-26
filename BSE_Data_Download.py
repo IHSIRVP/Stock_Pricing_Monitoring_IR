@@ -1,69 +1,33 @@
 import requests
+import os
 
-def send_conversion_request():
-    url = "https://www.google-analytics.com/privacy-sandbox/register-conversion"
-
-    params = {
-        "_c": "1",
-        "cid": "1422545866.1763358175",
-        "dbk": "17465179590646983565",
-        "dma": "0",
-        "en": "file_download",
-        "gtm": "45je5bi1h1v888160933za200zb851866778zd851866778",
-        "npa": "0",
-        "tid": "G-TM52BJH9HF",
-        "dl": "https://www.bseindia.com?"
-    }
-
+def Today_BSE_Bhav(date_parm):
+    today_str = date_parm.strftime('%Y%m%d')
+    url = f"https://www.bseindia.com/download/BhavCopy/Equity/BhavCopy_BSE_CM_0_0_0_{today_str}_F_0000.CSV"
 
     headers = {
-        "accept": "*/*",
-        "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
-        "dnt": "1",
-        "priority": "u=1, i",
-        "referer": "https://www.bseindia.com/",
-        "sec-ch-ua": '"Not_A Brand";v="99", "Chromium";v="142"',
-        "sec-ch-ua-mobile": "?1",
-        "sec-ch-ua-platform": '"Android"',
-        "sec-fetch-dest": "empty",
-        "sec-fetch-mode": "no-cors",
-        "sec-fetch-site": "cross-site",
-        "sec-fetch-storage-access": "active",
-        "user-agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                      "AppleWebKit/537.36 (KHTML, like Gecko) "
+                      "Chrome/142.0.0.0 Safari/537.36",
+        "Referer": "https://www.bseindia.com/",
+        "Sec-Fetch-Site": "same-origin",
+        "Accept": "*/*",
     }
 
-    cookies = {
-        "ar_debug": "1"
-    }
+    # Create folder if it doesn't exist
+    save_folder = "./BSEDATA"
+    os.makedirs(save_folder, exist_ok=True)
 
-    try:
-        response = requests.get(
-            url,
-            params=params,
-            headers=headers,
-            cookies=cookies,
-            timeout=10  # seconds
-        )
+    save_path = os.path.join(save_folder, "BSE_bhavcopy_TODAY.csv")
 
-        # Check HTTP status
-        response.raise_for_status()
+    response = requests.get(url, headers=headers)
 
-        print("Request successful.")
-        print("Status Code:", response.status_code)
-        print("Response:", response.text)
+    if response.status_code == 200:
+        with open(save_path, "wb") as f:
+            f.write(response.content)
+        print("CSV downloaded successfully!")
+        print("Saved at:", save_path)
+    else:
+        print("Failed:", response.status_code, response.text[:200])
 
-    except requests.exceptions.Timeout:
-        print("Error: The request timed out.")
-
-    except requests.exceptions.HTTPError as err:
-        print(f"HTTP error occurred: {err} (Status Code: {response.status_code})")
-
-    except requests.exceptions.ConnectionError:
-        print("Error: Connection error occurred.")
-
-    except requests.exceptions.RequestException as err:
-        print(f"An unexpected error occurred: {err}")
-
-
-send_conversion_request()
 
