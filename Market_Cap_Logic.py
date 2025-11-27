@@ -81,19 +81,42 @@ def extract_marketcap(data):
     print(data['MktCapFull'])
     return data['MktCapFull'], data['MktCapFF']
 
+def add_marketcap_column(df, max_retries=3):
 
-def add_marketcap_column(df):
-    df["Market Cap"] = None
+    attempt = 1
 
-    for idx, row in df.iterrows():
-        company = row["Company"]
-        scripcode = scrip_map.get(company)
-        time.sleep(2)
-        if scripcode:
-            data = bse_stock_api(scripcode)
+    while attempt <= max_retries:
+        print(f"\n🔁 add_marketcap_column Attempt {attempt}/{max_retries}\n")
 
-            marketcap, marketFF = extract_marketcap(data)
-            df.at[idx, "Market Cap"] = marketcap
-            df.at[idx, "Market FF"] = marketFF
+        try:
+            df["Market Cap"] = None
+            df["Market FF"] = None
 
+            for idx, row in df.iterrows():
+                company = row["Company"]
+                scripcode = scrip_map.get(company)
+
+                time.sleep(2)
+
+                if scripcode:
+                    try:
+                        data = bse_stock_api(scripcode)   # may raise HTTPError
+                    except requests.exceptions.HTTPError as e:
+                        print(f"\n❌ HTTP ERROR for {company}: {e}")
+                        print("🔄 Restarting entire add_marketcap_column...\n")
+                        raise   # trigger retry by going to outer except
+
+                    marketcap, marketFF = extract_marketcap(data)
+
+                    df.at[idx, "Market Cap"] = marketcap
+                    df.at[idx, "Market FF"] = marketFF
+
+            # If completed without error → return normally
+            return df
+
+        except requests.exceptions.HTTPError:
+            attempt += 1
+            time.sleep(2)
+
+    print("⛔ All retries failed inside add_marketcap_column.")
     return df

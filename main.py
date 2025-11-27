@@ -31,7 +31,8 @@ def load_bhavcopy(zip_path):
 
 if __name__ == "__main__":
 
-    current = datetime(2025, 11, 26)
+    print(datetime.now().time())
+    current = datetime(2025, 11, 25)
     output_path_today, output_path_prev, output_3m, output_6m, output_9m, output_12m = data_creation(current)
 
     real_estate_df = pd.DataFrame(columns=Pricing_Change_Logic.columns)
