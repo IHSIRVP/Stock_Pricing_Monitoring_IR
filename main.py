@@ -11,6 +11,8 @@ import Pricing_Change_Logic
 from Market_Cap_Logic import add_marketcap_column
 from BSE_Data_Download import Today_BSE_Bhav
 from Volume_Change_Logic import Today_Volume
+from High_Low_Logic import get_52week_high_low
+from Volume_Change_Logic import isin_mapping
 
 def wait_one_minute():
     print("⏳ Waiting 1 minute before next request...")
@@ -29,7 +31,7 @@ def load_bhavcopy(zip_path):
 
 if __name__ == "__main__":
 
-    current = datetime(2025, 11, 19)
+    current = datetime(2025, 11, 26)
     output_path_today, output_path_prev, output_3m, output_6m, output_9m, output_12m = data_creation(current)
 
     real_estate_df = pd.DataFrame(columns=Pricing_Change_Logic.columns)
@@ -53,6 +55,7 @@ if __name__ == "__main__":
     print(df_prev.columns)
     print(df_prev['FinInstrmId'])
 
+    print(df_today.columns)
 
     ## PRICE CHANGE 
     price_change_df = MainEntryLogicFunction(
@@ -62,13 +65,30 @@ if __name__ == "__main__":
 
     # MARKET CAP | MARKET FF 
     market_df = add_marketcap_column(price_change_df)
-    market_df.to_csv('Test_Final_Df.csv')
 
     ## VOLUME
     Today_BSE_Bhav(date_parm=current)
 
-    Today_Volume(df_today, BSE_bhav_today=None, master_df=price_change_df)
+    final_df = Today_Volume(df_today, BSE_bhav_today=None, master_df=price_change_df)
 
+    final_df.to_csv('Final_Data_Frame_Except_3month_Average.csv')
+
+    # 52 Week High Low DF Seperate
+    hl_df = df_today[['TckrSymb','ISIN','FinInstrmNm', 'FinInstrmId']]
+    ISIN_list = list(isin_mapping.values())
+    hl_df = hl_df[hl_df['ISIN'].isin(ISIN_list)]
+    print(hl_df)
+    hl_df["52W_High"] = None
+    hl_df["52W_Low"] = None    
+
+    for idx, row in hl_df.iterrows():
+        symbol = row["TckrSymb"]       # change column name if needed
+        high, low = get_52week_high_low(symbol)
+        print(high, low)
+        hl_df.at[idx, "52W_High"] = high
+        hl_df.at[idx, "52W_Low"] = low
+
+    hl_df.to_csv('52_High_Low.csv')
     
 
 
