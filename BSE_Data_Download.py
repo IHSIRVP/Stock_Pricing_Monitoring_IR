@@ -1,5 +1,6 @@
 import requests
 import os
+import pandas as pd 
 
 def Today_BSE_Bhav(date_parm):
     today_str = date_parm.strftime('%Y%m%d')
@@ -22,11 +23,13 @@ def Today_BSE_Bhav(date_parm):
 
     response = requests.get(url, headers=headers)
 
+
     if response.status_code == 200:
         with open(save_path, "wb") as f:
             f.write(response.content)
         print("CSV downloaded successfully!")
         print("Saved at:", save_path)
+        return pd.read_csv('/Users/rishivijaywargiya/CF_DB/BSEDATA/BSE_bhavcopy_TODAY.csv')
     else:
         print("Failed:", response.status_code, response.text[:200])
 
