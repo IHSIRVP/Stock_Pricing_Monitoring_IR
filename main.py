@@ -32,7 +32,7 @@ def load_bhavcopy(zip_path):
 if __name__ == "__main__":
 
     print(datetime.now().time())
-    current = datetime(2025, 11, 25)
+    current = datetime(2025, 11, 26)
     output_path_today, output_path_prev, output_3m, output_6m, output_9m, output_12m = data_creation(current)
 
     real_estate_df = pd.DataFrame(columns=Pricing_Change_Logic.columns)
@@ -71,8 +71,10 @@ if __name__ == "__main__":
     Today_BSE_Bhav(date_parm=current)
 
     final_df = Today_Volume(df_today, BSE_bhav_today=None, master_df=price_change_df)
-
+    final_df = final_df.drop(['3M Close','6M Close', '9M Close','12M Close','FinInstrmId'], axis = 1)
     final_df.to_csv('Final_Data_Frame_Except_3month_Average.csv')
+
+    
 
     # 52 Week High Low DF Seperate
     hl_df = df_today[['TckrSymb','ISIN','FinInstrmNm', 'FinInstrmId']]
@@ -91,5 +93,6 @@ if __name__ == "__main__":
 
     hl_df.to_csv('52_High_Low.csv')
     
+
 
 
