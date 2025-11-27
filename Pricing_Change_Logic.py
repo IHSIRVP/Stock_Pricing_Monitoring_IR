@@ -232,7 +232,7 @@ def MainEntryLogicFunction(
 
         # Price Change
         if isin in today_map and isin in prev_map:
-            df.at[idx, "Price Change"] = today_map[isin] - prev_map[isin]
+            df.at[idx, "Price Change"] = (today_map[isin] - prev_map[isin])/prev_map[isin]
 
     # Compute changes
     df = calculate_3m_change(df, df_today, df_3m)
