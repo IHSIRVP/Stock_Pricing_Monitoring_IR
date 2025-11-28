@@ -77,7 +77,7 @@ if __name__ == "__main__":
     final_average = get_3m_average(updated_panel, "2025-11-27")
     final_df = pd.merge(final_df, final_average, on=["Company", "ISIN"], how="left")
 
-    final_df = final_df.drop(['3M Close','6M Close', '9M Close','12M Close','FinInstrmId', '3M Average', '52W High-Low', 'Unnamed: 0',	'ISIN'], axis = 1)
+    final_df = final_df.drop(['3M Close','6M Close', '9M Close','12M Close','FinInstrmId', '3M Average', '52W High-Low',	'ISIN'], axis = 1)
 
 
     final_df
@@ -101,7 +101,7 @@ if __name__ == "__main__":
         hl_df.at[idx, "52W_Low"] = low
 
 
-    hl_df = hl_df.drop(['Unnamed: 0','TckrSymb', 'FinInstrmId','ISIN'], axis = 1)
+    hl_df = hl_df.drop(['TckrSymb', 'FinInstrmId','ISIN'], axis = 1)
     hl_df.to_csv('52_High_Low.csv')
     
 
