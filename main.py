@@ -34,7 +34,7 @@ def load_bhavcopy(zip_path):
 if __name__ == "__main__":
 
     print(datetime.now().time())
-    current = datetime(2025, 11, 27)
+    current = datetime(2025, 11, 28)
     output_path_today, output_path_prev, output_3m, output_6m, output_9m, output_12m = data_creation(current)
 
     real_estate_df = pd.DataFrame(columns=Pricing_Change_Logic.columns)
@@ -69,40 +69,50 @@ if __name__ == "__main__":
     # MARKET CAP | MARKET FF 
     market_df = add_marketcap_column(price_change_df)
 
-    ## VOLUME
+    # VOLUME
     Today_BSE_Bhav(date_parm=current)
 
     final_df = Today_Volume(df_today, BSE_bhav_today=None, master_df=price_change_df)
+
     updated_panel = update_combined_volume(target_date=current.date())
     final_average = get_3m_average(updated_panel, "2025-11-27")
+
     final_df = pd.merge(final_df, final_average, on=["Company", "ISIN"], how="left")
 
-    final_df = final_df.drop(['3M Close','6M Close', '9M Close','12M Close','FinInstrmId', '3M Average', '52W High-Low',	'ISIN'], axis = 1)
-
-
-    final_df
-    final_df.to_csv('Final_Data_Frame_Except_3month_Average.csv')
-
-    
-
-    # 52 Week High Low DF Seperate
+    # ----------------------------------------------------------
+    # 52W HIGH / LOW MERGE INTO FINAL_DF (not separate CSV)
+    # ----------------------------------------------------------
     hl_df = df_today[['TckrSymb','ISIN','FinInstrmNm', 'FinInstrmId']]
     ISIN_list = list(isin_mapping.values())
     hl_df = hl_df[hl_df['ISIN'].isin(ISIN_list)]
-    print(hl_df)
+
     hl_df["52W_High"] = None
-    hl_df["52W_Low"] = None    
+    hl_df["52W_Low"] = None
 
     for idx, row in hl_df.iterrows():
-        symbol = row["TckrSymb"]       # change column name if needed
+        symbol = row["TckrSymb"]
         high, low = get_52week_high_low(symbol)
-        print(high, low)
         hl_df.at[idx, "52W_High"] = high
         hl_df.at[idx, "52W_Low"] = low
 
+    # Keep only columns needed for merge
+    hl_df = hl_df[['ISIN', '52W_High', '52W_Low']]
 
-    hl_df = hl_df.drop(['TckrSymb', 'FinInstrmId','ISIN'], axis = 1)
-    hl_df.to_csv('52_High_Low.csv')
+    # Merge into final_df
+    final_df = pd.merge(final_df, hl_df, on="ISIN", how="left")
+
+    # ----------------------------------------------------------
+    # FINAL CLEANUP
+    # ----------------------------------------------------------
+    final_df = final_df.drop(
+        ['3M Close','6M Close','9M Close','12M Close',
+        'FinInstrmId','3M Average','52W High-Low'],
+        axis = 1,
+        errors='ignore'
+    )
+
+    # Export
+    final_df.to_csv('Final_Data_Frame.csv', index=False)
     
 
 
