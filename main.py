@@ -14,6 +14,7 @@ from Volume_Change_Logic import Today_Volume
 from High_Low_Logic import get_52week_high_low
 from Volume_Change_Logic import isin_mapping
 from Total_Volume_Logic_Final import update_combined_volume, get_3m_average
+import os
 
 
 def wait_one_minute():
@@ -111,11 +112,16 @@ if __name__ == "__main__":
         errors='ignore'
     )
 
-    # Export
-    final_df.to_csv(r"C:\Users\urvi.barot\Stock_Report\Stock_Report{current}_Final.csv", index=False)
-    
 
+    save_folder = r"C:\Users\urvi.barot\Stock_Report"
+    os.makedirs(save_folder, exist_ok=True)
 
+    filename = f"Stock_Report_{current.strftime('%Y-%m-%d')}_Final.csv"
+    save_path = os.path.join(save_folder, filename)
+    final_df.to_csv(save_path, index=False)
+
+    print("Final stock report saved at:")
+    print(save_path)
 
 
 
