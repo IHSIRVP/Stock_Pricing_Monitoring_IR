@@ -13,6 +13,8 @@ from BSE_Data_Download import Today_BSE_Bhav
 from Volume_Change_Logic import Today_Volume
 from High_Low_Logic import get_52week_high_low
 from Volume_Change_Logic import isin_mapping
+from Total_Volume_Logic_Final import update_combined_volume, get_3m_average
+
 
 def wait_one_minute():
     print("⏳ Waiting 1 minute before next request...")
@@ -32,7 +34,7 @@ def load_bhavcopy(zip_path):
 if __name__ == "__main__":
 
     print(datetime.now().time())
-    current = datetime(2025, 11, 26)
+    current = datetime(2025, 11, 27)
     output_path_today, output_path_prev, output_3m, output_6m, output_9m, output_12m = data_creation(current)
 
     real_estate_df = pd.DataFrame(columns=Pricing_Change_Logic.columns)
@@ -71,7 +73,14 @@ if __name__ == "__main__":
     Today_BSE_Bhav(date_parm=current)
 
     final_df = Today_Volume(df_today, BSE_bhav_today=None, master_df=price_change_df)
-    final_df = final_df.drop(['3M Close','6M Close', '9M Close','12M Close','FinInstrmId'], axis = 1)
+    updated_panel = update_combined_volume(target_date=current.date())
+    final_average = get_3m_average(updated_panel, "2025-11-27")
+    final_df = pd.merge(final_df, final_average, on=["Company", "ISIN"], how="left")
+
+    final_df = final_df.drop(['3M Close','6M Close', '9M Close','12M Close','FinInstrmId', '3M Average', '52W High-Low', 'Unnamed: 0',	'ISIN'], axis = 1)
+
+
+    final_df
     final_df.to_csv('Final_Data_Frame_Except_3month_Average.csv')
 
     
@@ -91,6 +100,8 @@ if __name__ == "__main__":
         hl_df.at[idx, "52W_High"] = high
         hl_df.at[idx, "52W_Low"] = low
 
+
+    hl_df = hl_df.drop(['Unnamed: 0','TckrSymb', 'FinInstrmId','ISIN'], axis = 1)
     hl_df.to_csv('52_High_Low.csv')
     
 

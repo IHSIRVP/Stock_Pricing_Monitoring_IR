@@ -2,7 +2,7 @@ import pandas as pd
 
 # ---------------------------
 # ISIN MAPPING
-# ---------------------------
+
 
 isin_mapping = {
     "Sunteck Realty": "INE805D01034",
@@ -50,9 +50,8 @@ isin_mapping = {
 
 isin_list = list(isin_mapping.values())
 
-# ---------------------------
+
 # CREATE EMPTY DATAFRAME
-# ---------------------------
 
 columns = [
     "Company",
@@ -70,13 +69,11 @@ columns = [
 
 real_estate_df = pd.DataFrame(columns=columns)
 
-# Fill in rows
+
 for company, isin in isin_mapping.items():
     real_estate_df.loc[len(real_estate_df)] = {"Company": company, "ISIN": isin}
 
-# ---------------------------
 # FUNCTIONS FOR PRICE EXTRACTION
-# ---------------------------
 
 def get_6m_change_closing_price(df_today, isin_list):
 
@@ -98,10 +95,8 @@ def get_previous_closing_price(df_prev, isin_list):
 
 def calculate_3m_change(real_estate_df, df_today, df_3month):
     
-    # Local copy
-    df = real_estate_df.copy()
 
-    # Build lookup dictionaries
+    df = real_estate_df.copy()
     today_map = df_today.set_index("ISIN")["ClsPric"].to_dict()
     old_map = df_3month.set_index("ISIN")["ClsPric"].to_dict()
 
@@ -110,12 +105,9 @@ def calculate_3m_change(real_estate_df, df_today, df_3month):
 
         today_price = today_map.get(isin)
         old_price = old_map.get(isin)
-
-        # Assign raw values (optional)
         df.at[idx, "Current Close"] = today_price
         df.at[idx, "3M Close"] = old_price
 
-        # Calculate change
         if today_price is not None and old_price is not None:
             df.at[idx, "3M Change"] = (today_price - old_price)/old_price
         else:
@@ -125,10 +117,8 @@ def calculate_3m_change(real_estate_df, df_today, df_3month):
 
 def calculate_6m_change(real_estate_df, df_today, df_6month):
     
-    # Local copy
     df = real_estate_df.copy()
 
-    # Build lookup dictionaries
     today_map = df_today.set_index("ISIN")["ClsPric"].to_dict()
     old_map = df_6month.set_index("ISIN")["ClsPric"].to_dict()
 
@@ -138,11 +128,8 @@ def calculate_6m_change(real_estate_df, df_today, df_6month):
         today_price = today_map.get(isin)
         old_price = old_map.get(isin)
 
-        # Assign raw values (optional)
         df.at[idx, "Current Close"] = today_price
         df.at[idx, "6M Close"] = old_price
-
-        # Calculate change
         if today_price is not None and old_price is not None:
             df.at[idx, "6M Change"] = (today_price - old_price)/old_price
         else:
@@ -152,7 +139,6 @@ def calculate_6m_change(real_estate_df, df_today, df_6month):
 
 def calculate_9m_change(real_estate_df, df_today, df_9month):
     
-    # Local copy
     df = real_estate_df.copy()
 
     # Build lookup dictionaries
@@ -165,7 +151,6 @@ def calculate_9m_change(real_estate_df, df_today, df_9month):
         today_price = today_map.get(isin)
         old_price = old_map.get(isin)
 
-        # Assign raw values (optional)
         df.at[idx, "Current Close"] = today_price
         df.at[idx, "9M Close"] = old_price
 
@@ -179,10 +164,7 @@ def calculate_9m_change(real_estate_df, df_today, df_9month):
 
 def calculate_12m_change(real_estate_df, df_today, df_12month):
     
-    # Local copy
     df = real_estate_df.copy()
-
-    # Build lookup dictionaries
     today_map = df_today.set_index("ISIN")["ClsPric"].to_dict()
     old_map = df_12month.set_index("ISIN")["ClsPric"].to_dict()
 
@@ -192,11 +174,8 @@ def calculate_12m_change(real_estate_df, df_today, df_12month):
         today_price = today_map.get(isin)
         old_price = old_map.get(isin)
 
-        # Assign raw values (optional)
         df.at[idx, "Current Close"] = today_price
         df.at[idx, "12M Close"] = old_price
-
-        # Calculate change
         if today_price is not None and old_price is not None:
             df.at[idx, "12M Change"] = (today_price - old_price)/old_price
         else:
@@ -214,36 +193,31 @@ def MainEntryLogicFunction(
         df_12m
 ):
 
-    df = real_estate_df.copy()     # do not modify original
+    df = real_estate_df.copy()     # 
 
-    # Make lookups for faster access
+
     today_map = df_today.set_index("ISIN")["ClsPric"].to_dict()
     prev_map = df_prev.set_index("ISIN")["ClsPric"].to_dict()
-
-    # Loop row-by-row and fill values
     for idx, row in df.iterrows():
         isin = row["ISIN"]
 
-        # Current Close
+
         df.at[idx, "Current Close"] = today_map.get(isin, None)
 
-        # Previous Close
         df.at[idx, "Previous Close"] = prev_map.get(isin, None)
 
-        # Price Change
+
         if isin in today_map and isin in prev_map:
             df.at[idx, "Price Change"] = (today_map[isin] - prev_map[isin])/prev_map[isin]
 
-    # Compute changes
     df = calculate_3m_change(df, df_today, df_3m)
     df = calculate_6m_change(df, df_today, df_6m)
     df = calculate_9m_change(df, df_today, df_9m)
     df = calculate_12m_change(df, df_today, df_12m)
 
-    # ----------------------------------------
+
     
-    # 👉 Add FinInstrmId (BSE code)
-    # ----------------------------------------
+    # Add FinInstrmId (BSE code)
     print(df_today)
     fin_map = df_today.set_index("ISIN")["FinInstrmId"].to_dict()
     df["FinInstrmId"] = df["ISIN"].map(fin_map)

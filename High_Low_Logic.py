@@ -14,12 +14,10 @@ def get_52week_high_low(symbol: str):
         "Referer": f"https://www.nseindia.com/get-quotes/equity?symbol={symbol}",
     }
 
-    # Start a session to store cookies
     session = requests.Session()
-    # First request to set cookies
     session.get("https://www.nseindia.com", headers=headers)
 
-    # Actual API hit
+
     response = session.get(url, headers=headers)
 
     if response.status_code != 200:

@@ -46,24 +46,18 @@ isin_mapping = {
 
 ISIN_list = list(isin_mapping.values())
 def Today_Volume(NSE_bhav_today, BSE_bhav_today=None, master_df=None):
-
-    # Load BSE today bhavcopy
     BSE_bhav_today = pd.read_csv('./BSEDATA/BSE_bhavcopy_TODAY.csv')
 
-    # Filter by ISIN list
     NSE_f = NSE_bhav_today[NSE_bhav_today['ISIN'].isin(ISIN_list)]
     BSE_f = BSE_bhav_today[BSE_bhav_today['ISIN'].isin(ISIN_list)]
 
-    # Compute volume per ISIN
     nse_vol = NSE_f.groupby('ISIN')['TtlTradgVol'].sum()
     bse_vol = BSE_f.groupby('ISIN')['TtlTradgVol'].sum()
     print(f"NSE_VOL",nse_vol)
     print(f"BSE_VOL",bse_vol)
 
-    # Total volume = NSE + BSE
     total_volume = nse_vol.add(bse_vol, fill_value=0)
 
-    # Add to master_df
     master_df['Total_Trading_Volume'] = master_df['ISIN'].map(total_volume).fillna(0)
     print(master_df)
 

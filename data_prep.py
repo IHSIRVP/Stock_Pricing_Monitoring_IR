@@ -41,10 +41,9 @@ def data_creation(today):
     print("9 Months Before:", months_9_str)
     print("12 Months Before:", months_12_str)
 
-    # Example usage
     run_str = today_str
 
-    # Today
+
     print(today_str)
     response_today, output_path_today = dataFunct(run_str, today_str, f"A . | Today |-{today.strftime('%d-%m-%Y')}", "today")
 
@@ -56,7 +55,7 @@ def data_creation(today):
     print(months_3_str)
     response_3m, output_3m = dataFunct(run_str, months_3_str,  f"C. | 03-Month |-{months_3.strftime('%d-%m-%Y')}", "3")
 
-    # 6 Months
+    # 6 Month
     print(months_6_str)
     response_6m, output_6m = dataFunct(run_str, months_6_str, f"D .| 06-Month |-{months_6.strftime('%d-%m-%Y')}","6")
 
@@ -64,7 +63,7 @@ def data_creation(today):
     print(months_9_str)
     response_9m, output_9m = dataFunct(run_str, months_9_str, f"E. | 09-Month |-{months_9.strftime('%d-%m-%Y')}", "9")
 
-    # 12 Months
+    # 12 Month
     print(months_12_str)
     response_12m, output_12m = dataFunct(run_str, months_12_str, f"F. | 12-Month |-{months_12.strftime('%d-%m-%Y')}", "12")
 

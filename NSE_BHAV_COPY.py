@@ -66,7 +66,6 @@ def dataFunct(run_str, date_str, date_label, spec_day):
                 print("⛔ Reached earliest supported date. Cannot try further.")
                 return None, None
 
-            # Try previous day (FIXED)
             if(spec_day== "prev"):
                 current_date -= timedelta(days=1)
                 print("⬅️ Trying previous day...\n")

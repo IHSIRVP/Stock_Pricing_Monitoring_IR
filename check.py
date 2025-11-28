@@ -114,7 +114,6 @@ while current <= end_date:
 
     filtered = df[df["ISIN"].isin(isin_list)]
 
-    # Build row dictionary
     row = {"Date": date_str}
     for company, isin in isin_mapping.items():
         matched = filtered[filtered["ISIN"] == isin]
