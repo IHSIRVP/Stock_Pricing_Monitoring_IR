@@ -35,8 +35,10 @@ def load_bhavcopy(zip_path):
 if __name__ == "__main__":
 
     print(datetime.now().time())
-    current = datetime(2025, 11, 28)
-    output_path_today, output_path_prev, output_3m, output_6m, output_9m, output_12m = data_creation(current)
+
+    current_datetime = datetime.now()
+    ymd_date = current_datetime.strftime("%Y-%m-%d")
+    output_path_today, output_path_prev, output_3m, output_6m, output_9m, output_12m = data_creation(current_datetime)
 
     real_estate_df = pd.DataFrame(columns=Pricing_Change_Logic.columns)
 
@@ -71,11 +73,11 @@ if __name__ == "__main__":
     market_df = add_marketcap_column(price_change_df)
 
     # VOLUME
-    Today_BSE_Bhav(date_parm=current)
+    Today_BSE_Bhav(date_parm=current_datetime)
 
     final_df = Today_Volume(df_today, BSE_bhav_today=None, master_df=price_change_df)
 
-    updated_panel = update_combined_volume(target_date=current.date())
+    updated_panel = update_combined_volume(target_date=current_datetime.date())
     final_average = get_3m_average(updated_panel, "2025-11-27")
 
     final_df = pd.merge(final_df, final_average, on=["Company", "ISIN"], how="left")
@@ -116,7 +118,7 @@ if __name__ == "__main__":
     save_folder = r"C:\Users\urvi.barot\Stock_Report"
     os.makedirs(save_folder, exist_ok=True)
 
-    filename = f"Stock_Report_{current.strftime('%Y-%m-%d')}_Final.csv"
+    filename = f"Stock_Report_{current_datetime.strftime('%Y-%m-%d')}_Final.csv"
     save_path = os.path.join(save_folder, filename)
     final_df.to_csv(save_path, index=False)
 
