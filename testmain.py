@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
     print(datetime.now().time())
 
-    current_datetime = datetime.now()
+    current_datetime = datetime(2025, 12, 3)
     # cutoff_time = current_datetime.time().replace(hour=17, minute=0, second=0, microsecond=0).time()
 
     ymd_date = current_datetime.strftime("%Y-%m-%d")
