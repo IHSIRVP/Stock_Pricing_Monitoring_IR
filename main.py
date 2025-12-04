@@ -37,6 +37,8 @@ if __name__ == "__main__":
     print(datetime.now().time())
 
     current_datetime = datetime.now()
+    cutoff_time = current_datetime.time().replace(hour=17, minute=0, second=0, microsecond=0).time()
+
     ymd_date = current_datetime.strftime("%Y-%m-%d")
     print("--------------------------------------------------HERER----------------------------")
     output_path_today, output_path_prev, output_3m, output_6m, output_9m, output_12m = data_creation(current_datetime)
