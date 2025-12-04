@@ -133,161 +133,97 @@ def update_combined_volume(target_date):
         print(f"❌ Cannot run for a future date: {target_date}. Today is {today}.")
         return None
 
-    dt_obj = dt.datetime.combine(target_date, dt.datetime.min.time())
-
     # ---- Load panel ----
     try:
         panel = pd.read_csv("Combined_Volume_Panel.csv")
-
-        # 🔥 REMOVE ANY UNNAMED COLUMNS
         panel = panel.loc[:, ~panel.columns.str.contains("^Unnamed")]
+
+        # Find last recorded date column
+        vol_cols = [c for c in panel.columns if c.startswith("Vol_")]
+        last_col = sorted(vol_cols, key=lambda x: pd.to_datetime(x.replace("Vol_", "")))[-1]
+
+        last_date = pd.to_datetime(last_col.replace("Vol_", "")).date()
 
     except FileNotFoundError:
         print("❌ Combined_Volume_Panel.csv not found.")
         return
 
-    col_name = f"Vol_{target_date}"
+    # -----------------------------------------------------------
+    # ⭐ FIND ALL DATES BETWEEN last_date AND target_date (inclusive)
+    # -----------------------------------------------------------
+    all_dates = pd.date_range(start=last_date, end=target_date)
+    all_dates = [d.date() for d in all_dates]   # convert to Python date objects
 
-    # Already exists
-    if col_name in panel.columns:
-        print(f"Column {col_name} already exists.")
-        return panel
+    print(f"📅 Dates to process: {all_dates}")
 
-    # ---- NSE ----
-    nse_df = load_nse_bhavcopy_custom(target_date)
+    # -----------------------------------------------------------
+    # ⭐ PROCESS EACH DATE IN LOOP AND UPDATE PANEL
+    # -----------------------------------------------------------
+    for day in all_dates:
 
-    if nse_df is None:
-        print("⚠️ NSE FAILED → Creating ZERO column.")
-        panel[col_name] = 0
+        col_name = f"Vol_{day}"
 
-        # Remove unnamed again
-        panel = panel.loc[:, ~panel.columns.str.contains("^Unnamed")]
-
-        panel.to_csv("Combined_Volume_Panel.csv", index=False)
-        return panel
-
-    filtered_NSE = extract(nse_df)
-
-    # ---- BSE ----
-    try:
-        bse_df = Today_BSE_Bhav(dt_obj)
-        if bse_df is None:
-            raise Exception("No BSE data returned")
-
-        filtered_BSE = extract(bse_df)
-
-    except Exception as e:
-        print(f"⚠️ BSE FAILED → {e}")
-        panel[col_name] = 0
-
-        panel = panel.loc[:, ~panel.columns.str.contains("^Unnamed")]
-        panel.to_csv("Combined_Volume_Panel.csv", index=False)
-        return panel
-
-    # ---- MERGE ----
-    nse_std = standardize(filtered_NSE, "NSE")
-    bse_std = standardize(filtered_BSE, "BSE")
-
-    combined = pd.merge(
-        nse_std, bse_std,
-        on=["Company", "ISIN", "TradeDate"],
-        how="outer"
-    )
-
-    combined["Vol_NSE"] = combined["Vol_NSE"].fillna(0)
-    combined["Vol_BSE"] = combined["Vol_BSE"].fillna(0)
-    combined["TotalVol"] = combined["Vol_NSE"] + combined["Vol_BSE"]
-
-    combined_day = combined[["Company", "ISIN", "TotalVol"]]
-
-    panel = pd.merge(panel, combined_day, on=["Company", "ISIN"], how="left")
-    panel.rename(columns={"TotalVol": col_name}, inplace=True)
-    panel[col_name] = panel[col_name].fillna(0)
-
-    # 🔥 FINAL CLEANUP: Remove unnamed columns again
-    panel = panel.loc[:, ~panel.columns.str.contains("Unnamed")]
-
-    panel.to_csv("Combined_Volume_Panel.csv", index=False)
-    print(panel)
-
-    return panel
-
-
-# ============================================================
-# FILL MISSING DATE COLUMNS (NEW)
-# ============================================================
-
-def fill_missing_date_columns(panel):
-
-    # Extract existing volume date columns
-    vol_cols = [c for c in panel.columns if c.startswith("Vol_")]
-
-    if not vol_cols:
-        print("⚠️ No Vol_ columns exist. Skipping fill.")
-        return panel
-
-    # Convert Vol_YYYY-MM-DD → actual datetime
-    existing_dates = sorted([
-        pd.to_datetime(c.replace("Vol_", "")).date()
-        for c in vol_cols
-    ])
-
-    start_date = existing_dates[0]
-    end_date = existing_dates[-1]
-
-    print(f"🔍 Checking missing dates between {start_date} → {end_date}")
-
-    all_calendar_dates = pd.date_range(start=start_date, end=end_date)
-
-    for dt_obj in all_calendar_dates:
-        date = dt_obj.date()
-        col_name = f"Vol_{date}"
-
+        # Skip if already exists
         if col_name in panel.columns:
-            continue  # column already exists
+            print(f"⏭️ {col_name} already exists, skipping.")
+            continue
 
-        print(f"⚠️ Missing date column: {col_name} → Checking trading status")
+        print(f"\n🔄 Processing date: {day} ...")
 
-        # Try NSE first to check if it is a trading day
+        dt_obj = dt.datetime.combine(day, dt.datetime.min.time())
+
+        # ---- NSE ----
         nse_df = load_nse_bhavcopy_custom(dt_obj)
 
         if nse_df is None:
-            # Not a trading day → add a zero column
-            print(f"🚫 {date} is NOT a trading day → Adding ZERO column")
+            print(f"⚠️ NSE FAILED for {day} → Adding ZERO column.")
             panel[col_name] = 0
             continue
 
-        # Trading day → extract volumes
-        print(f"📈 {date} IS a trading day → Fetching NSE/BSE volumes")
+        filtered_NSE = extract(nse_df)
 
-        # Extract from NSE
-        filtered_nse = extract(nse_df)
-        nse_std = standardize(filtered_nse, "NSE")
-
-        # BSE
+        # ---- BSE ----
         try:
-            bse_df = Today_BSE_Bhav(dt.datetime.combine(date, dt.datetime.min.time()))
-            filtered_bse = extract(bse_df)
-            bse_std = standardize(filtered_bse, "BSE")
-        except:
-            print(f"⚠️ BSE failed for {date}, using only NSE")
-            bse_std = pd.DataFrame(columns=["Company", "ISIN", "TradeDate", "Vol_BSE"])
+            bse_df = Today_BSE_Bhav(dt_obj)
+            if bse_df is None:
+                raise Exception("No BSE data returned")
+            filtered_BSE = extract(bse_df)
+        except Exception as e:
+            print(f"⚠️ BSE FAILED for {day} → {e}")
+            panel[col_name] = 0
+            continue
 
-        combined = pd.merge(nse_std, bse_std, on=["Company", "ISIN", "TradeDate"], how="outer")
+        # ---- MERGE ----
+        nse_std = standardize(filtered_NSE, "NSE")
+        bse_std = standardize(filtered_BSE, "BSE")
+
+        combined = pd.merge(
+            nse_std,
+            bse_std,
+            on=["Company", "ISIN", "TradeDate"],
+            how="outer"
+        )
+
         combined["Vol_NSE"] = combined["Vol_NSE"].fillna(0)
         combined["Vol_BSE"] = combined["Vol_BSE"].fillna(0)
         combined["TotalVol"] = combined["Vol_NSE"] + combined["Vol_BSE"]
 
         combined_day = combined[["Company", "ISIN", "TotalVol"]]
 
-        # Merge into panel
+        # Add column into panel
         panel = pd.merge(panel, combined_day, on=["Company", "ISIN"], how="left")
         panel.rename(columns={"TotalVol": col_name}, inplace=True)
         panel[col_name] = panel[col_name].fillna(0)
 
-    # Cleanup
-    panel = panel.loc[:, ~panel.columns.str.contains("Unnamed")]
+        print(f"✅ Completed {col_name}")
 
+    # -----------------------------------------------------------
+    # SAVE FINAL PANEL
+    # -----------------------------------------------------------
+    panel = panel.loc[:, ~panel.columns.str.contains("Unnamed")]
+    panel.to_csv("Combined_Volume_Panel.csv", index=False)
+
+    print("\n🎉 ALL DATES UPDATED SUCCESSFULLY!")
     return panel
 
 

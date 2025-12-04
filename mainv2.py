@@ -13,7 +13,7 @@ from BSE_Data_Download import Today_BSE_Bhav
 from Volume_Change_Logic import Today_Volume
 from High_Low_Logic import get_52week_high_low
 from Volume_Change_Logic import isin_mapping
-from Total_Volume_Logic_Final import update_combined_volume, get_3m_average
+from Volume_Logic_V2 import update_combined_volume, get_3m_average
 import os
 
 
@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
     print(datetime.now().time())
 
-    current_datetime = datetime.now()
+    current_datetime = datetime(2025, 12, 3)
     ymd_date = current_datetime.strftime("%Y-%m-%d")
     print("--------------------------------------------------HERER----------------------------")
     output_path_today, output_path_prev, output_3m, output_6m, output_9m, output_12m = data_creation(current_datetime)
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     )
 
 
-    save_folder = r"C:\Users\urvi.barot\Stock_Report"
+    save_folder = r"/Users/rishivijaywargiya/CF_DB/Stock_Report"
     os.makedirs(save_folder, exist_ok=True)
 
     filename = f"Stock_Report_{current_datetime.strftime('%Y-%m-%d')}_Final.xlsx"
