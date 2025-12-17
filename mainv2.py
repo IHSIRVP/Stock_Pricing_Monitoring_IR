@@ -15,6 +15,7 @@ from High_Low_Logic import get_52week_high_low
 from Volume_Change_Logic import isin_mapping
 from Volume_Logic_V2 import update_combined_volume, get_3m_average
 import os
+from pathlib import Path
 
 
 def wait_one_minute():
@@ -36,6 +37,8 @@ if __name__ == "__main__":
 
 
     if datetime.now().time().hour<17: 
+
+
         print("CANNOT RUN NOW: DATA IS NOT AVAILABLE ON THE WEBSITE")
         
     else:
@@ -121,9 +124,10 @@ if __name__ == "__main__":
             axis = 1,
             errors='ignore'
         )
+        
 
-
-        save_folder = r"/Users/rishivijaywargiya/CF_DB/Stock_Report"
+        save_folder = str(Path(__file__).resolve().parent)+ '/StockReport'
+        
         os.makedirs(save_folder, exist_ok=True)
 
         filename = f"Stock_Report_{current_datetime.strftime('%Y-%m-%d')}_Final.xlsx"
