@@ -34,98 +34,105 @@ def load_bhavcopy(zip_path):
 
 if __name__ == "__main__":
 
-    print(datetime.now().time())
 
-    current_datetime = datetime(2025, 12, 3)
-    ymd_date = current_datetime.strftime("%Y-%m-%d")
-    print("--------------------------------------------------HERER----------------------------")
-    output_path_today, output_path_prev, output_3m, output_6m, output_9m, output_12m = data_creation(current_datetime)
-    print("--------------------------------------------------HERER----------------------------")
-    real_estate_df = pd.DataFrame(columns=Pricing_Change_Logic.columns)
+    if datetime.now().time().hour<17: 
+        print("CANNOT RUN NOW: DATA IS NOT AVAILABLE ON THE WEBSITE")
+        
+    else:
+        # if(datetime.now().time().hour > 10)
+        
+        # current_datetime = datetime(2025, 12, 16)
+        
+        current_datetime = datetime.now()
+        ymd_date = current_datetime.strftime("%Y-%m-%d")
+        print("--------------------------------------------------HERER----------------------------")
+        output_path_today, output_path_prev, output_3m, output_6m, output_9m, output_12m = data_creation(current_datetime)
+        print("--------------------------------------------------HERER----------------------------")
+        real_estate_df = pd.DataFrame(columns=Pricing_Change_Logic.columns)
 
-    for company, isin in Pricing_Change_Logic.isin_mapping.items():
-        real_estate_df.loc[len(real_estate_df)] = {"Company": company, "ISIN": isin}
+        for company, isin in Pricing_Change_Logic.isin_mapping.items():
+            real_estate_df.loc[len(real_estate_df)] = {"Company": company, "ISIN": isin}
 
-    # Load zipped CSVs correctly
-    df_today = load_bhavcopy(output_path_today)
-    df_prev = load_bhavcopy(output_path_prev)
-    df_3month = load_bhavcopy(output_3m)
-    df_6month = load_bhavcopy(output_6m)
-    df_9month = load_bhavcopy(output_9m)
-    df_12month = load_bhavcopy(output_12m)
-    print(f"OUTPUT PATH", output_path_today)
-    print(f"OUTPUT PATH",output_path_prev)
-    print(f"OUTPUT PATH",output_3m)
-    print(f"OUTPUT PATH",output_6m)
-    print(f"OUTPUT PATH",output_9m)
-    print(f"OUTPUT PATH",output_12m)
-    print(df_prev.columns)
-    print(df_prev['FinInstrmId'])
+        # Load zipped CSVs correctly
+        df_today = load_bhavcopy(output_path_today)
+        df_prev = load_bhavcopy(output_path_prev)
+        df_3month = load_bhavcopy(output_3m)
+        df_6month = load_bhavcopy(output_6m)
+        df_9month = load_bhavcopy(output_9m)
+        df_12month = load_bhavcopy(output_12m)
+        print(f"OUTPUT PATH", output_path_today)
+        print(f"OUTPUT PATH",output_path_prev)
+        print(f"OUTPUT PATH",output_3m)
+        print(f"OUTPUT PATH",output_6m)
+        print(f"OUTPUT PATH",output_9m)
+        print(f"OUTPUT PATH",output_12m)
+        print(df_prev.columns)
+        print(df_prev['FinInstrmId'])
 
-    print(df_today.columns)
+        print(df_today.columns)
 
-    ## PRICE CHANGE 
-    price_change_df = MainEntryLogicFunction(
-        real_estate_df, 
-        df_today, df_prev, df_3month, df_6month, df_9month, df_12month
-    )
+        ## PRICE CHANGE 
+        price_change_df = MainEntryLogicFunction(
+            real_estate_df, 
+            df_today, df_prev, df_3month, df_6month, df_9month, df_12month
+        )
 
-    # MARKET CAP | MARKET FF 
-    market_df = add_marketcap_column(price_change_df)
+        # MARKET CAP | MARKET FF 
+        market_df = add_marketcap_column(price_change_df)
 
-    # VOLUME
-    Today_BSE_Bhav(date_parm=current_datetime)
+        # VOLUME
+        Today_BSE_Bhav(date_parm=current_datetime)
 
-    final_df = Today_Volume(df_today, BSE_bhav_today=None, master_df=price_change_df)
+        final_df = Today_Volume(df_today, BSE_bhav_today=None, master_df=price_change_df)
 
-    updated_panel = update_combined_volume(target_date=current_datetime.date())
-    final_average = get_3m_average(updated_panel, current_datetime.date())
+        updated_panel = update_combined_volume(target_date=current_datetime.date())
+        final_average = get_3m_average(updated_panel, current_datetime.date())
 
-    final_df = pd.merge(final_df, final_average, on=["Company", "ISIN"], how="left")
+        final_df = pd.merge(final_df, final_average, on=["Company", "ISIN"], how="left")
 
-    # ----------------------------------------------------------
-    # 52W HIGH / LOW MERGE INTO FINAL_DF (not separate CSV)
-    # ----------------------------------------------------------
-    hl_df = df_today[['TckrSymb','ISIN','FinInstrmNm', 'FinInstrmId']]
-    ISIN_list = list(isin_mapping.values())
-    hl_df = hl_df[hl_df['ISIN'].isin(ISIN_list)]
+        # ----------------------------------------------------------
+        # 52W HIGH / LOW MERGE INTO FINAL_DF (not separate CSV)
+        # ----------------------------------------------------------
+        hl_df = df_today[['TckrSymb','ISIN','FinInstrmNm', 'FinInstrmId']]
+        ISIN_list = list(isin_mapping.values())
+        hl_df = hl_df[hl_df['ISIN'].isin(ISIN_list)]
 
-    hl_df["52W_High"] = None
-    hl_df["52W_Low"] = None
+        hl_df["52W_High"] = None
+        hl_df["52W_Low"] = None
 
-    for idx, row in hl_df.iterrows():
-        symbol = row["TckrSymb"]
-        high, low = get_52week_high_low(symbol)
-        hl_df.at[idx, "52W_High"] = high
-        hl_df.at[idx, "52W_Low"] = low
+        for idx, row in hl_df.iterrows():
+            symbol = row["TckrSymb"]
+            high, low = get_52week_high_low(symbol)
+            hl_df.at[idx, "52W_High"] = high
+            hl_df.at[idx, "52W_Low"] = low
 
-    # Keep only columns needed for merge
-    hl_df = hl_df[['ISIN', '52W_High', '52W_Low']]
+        # Keep only columns needed for merge
+        hl_df = hl_df[['ISIN', '52W_High', '52W_Low']]
 
-    # Merge into final_df
-    final_df = pd.merge(final_df, hl_df, on="ISIN", how="left")
+        # Merge into final_df
+        final_df = pd.merge(final_df, hl_df, on="ISIN", how="left")
 
-    # ----------------------------------------------------------
-    # FINAL CLEANUP
-    # ----------------------------------------------------------
-    final_df = final_df.drop(
-        ['3M Close','6M Close','9M Close','12M Close',
-        'FinInstrmId','3M Average','52W High-Low'],
-        axis = 1,
-        errors='ignore'
-    )
-
-
-    save_folder = r"/Users/rishivijaywargiya/CF_DB/Stock_Report"
-    os.makedirs(save_folder, exist_ok=True)
-
-    filename = f"Stock_Report_{current_datetime.strftime('%Y-%m-%d')}_Final.xlsx"
-    save_path = os.path.join(save_folder, filename)
-    final_df.to_csv(save_path, index=False)
+        # ----------------------------------------------------------
+        # FINAL CLEANUP
+        # ----------------------------------------------------------
+        final_df = final_df.drop(
+            ['3M Close','6M Close','9M Close','12M Close',
+            'FinInstrmId','3M Average','52W High-Low'],
+            axis = 1,
+            errors='ignore'
+        )
 
 
-    print("Final stock report saved at:")
-    print(save_path)
+        save_folder = r"/Users/rishivijaywargiya/CF_DB/Stock_Report"
+        os.makedirs(save_folder, exist_ok=True)
+
+        filename = f"Stock_Report_{current_datetime.strftime('%Y-%m-%d')}_Final.xlsx"
+        save_path = os.path.join(save_folder, filename)
+        final_df.to_csv(save_path, index=False)
+
+
+        print("Final stock report saved at:")
+        print(save_path)
 
 
 
