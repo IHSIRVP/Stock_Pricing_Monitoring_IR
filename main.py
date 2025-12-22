@@ -121,9 +121,9 @@ if __name__ == "__main__":
     save_folder = r"C:\Users\urvi.barot\Stock_Report"
     os.makedirs(save_folder, exist_ok=True)
 
-    filename = f"Stock_Report_{current_datetime.strftime('%Y-%m-%d')}_Final.xlsx"
+    filename = f"Stock_Report_{current_datetime.strftime('%Y-%m-%d')}_Final.csv"
     save_path = os.path.join(save_folder, filename)
-    final_df.to_excel(save_path, index=False)
+    final_df.to_csv(save_path, index=False)
 
 
     print("Final stock report saved at:")
