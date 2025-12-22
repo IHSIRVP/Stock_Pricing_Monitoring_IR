@@ -109,15 +109,10 @@ if __name__ == "__main__":
             hl_df.at[idx, "52W_High"] = high
             hl_df.at[idx, "52W_Low"] = low
 
-        # Keep only columns needed for merge
         hl_df = hl_df[['ISIN', '52W_High', '52W_Low']]
 
-        # Merge into final_df
         final_df = pd.merge(final_df, hl_df, on="ISIN", how="left")
 
-        # ----------------------------------------------------------
-        # FINAL CLEANUP
-        # ----------------------------------------------------------
         final_df = final_df.drop(
             ['3M Close','6M Close','9M Close','12M Close',
             'FinInstrmId','3M Average','52W High-Low'],
