@@ -41,8 +41,10 @@ isin_mapping = {
     "TARC Ltd.": "INE0EK901012",
     "Marathon Nextgen Realty Ltd.": "INE182D01020",
     "Hemisphere Properties Ltd.": "INE0AJG01018",
-    "Ajmera Realty & Infra India Ltd": "INE298G01027"
+    "Ajmera Realty & Infra India Ltd": "INE298G01035"
 }
+
+
 
 ISIN_list = list(isin_mapping.values())
 def Today_Volume(NSE_bhav_today, BSE_bhav_today=None, master_df=None):

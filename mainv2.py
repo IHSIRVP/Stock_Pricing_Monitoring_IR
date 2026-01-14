@@ -27,7 +27,7 @@ import pandas as pd
 
 def load_bhavcopy(zip_path):
     with zipfile.ZipFile(zip_path, 'r') as z:
-        csv_name = z.namelist()[0]          # first file inside
+        csv_name = z.namelist()[0]          # first file 
         with z.open(csv_name) as f:
             return pd.read_csv(f)
 
@@ -63,16 +63,22 @@ if __name__ == "__main__":
         df_6month = load_bhavcopy(output_6m)
         df_9month = load_bhavcopy(output_9m)
         df_12month = load_bhavcopy(output_12m)
+        df_today = df_today.replace('INE298G01027', 'INE298G01035')
+        df_prev = df_prev.replace('INE298G01027', 'INE298G01035')
+        df_3month = df_3month.replace('INE298G01027', 'INE298G01035')
+        df_6month = df_6month.replace('INE298G01027', 'INE298G01035')
+        df_9month = df_9month.replace('INE298G01027', 'INE298G01035')
+        df_12month = df_12month.replace('INE298G01027', 'INE298G01035')
+        
         print(f"OUTPUT PATH", output_path_today)
         print(f"OUTPUT PATH",output_path_prev)
         print(f"OUTPUT PATH",output_3m)
         print(f"OUTPUT PATH",output_6m)
         print(f"OUTPUT PATH",output_9m)
         print(f"OUTPUT PATH",output_12m)
-        print(df_prev.columns)
-        print(df_prev['FinInstrmId'])
-
+        df_today.to_csv('01-14-2025_stock.csv')
         print(df_today.columns)
+        print(df_today[df_today['ISIN']=='INE298G01035']['ClsPric'])
 
         ## PRICE CHANGE 
         price_change_df = MainEntryLogicFunction(
@@ -127,7 +133,7 @@ if __name__ == "__main__":
 
         filename = f"Stock_Report_{current_datetime.strftime('%Y-%m-%d')}_Final.xlsx"
         save_path = os.path.join(save_folder, filename)
-        final_df.to_csv(save_path, index=False)
+        final_df.to_excel(save_path, index=False)
 
 
         print("Final stock report saved at:")
