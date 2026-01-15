@@ -14,7 +14,7 @@ def wait_one_minute():
 
 def data_creation(today):
 
-    now = datetime.now()
+    # now = datetime.now()
 
     # Convert to YYYYMMDD
     today_str = today.strftime('%Y%m%d')

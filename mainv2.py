@@ -32,6 +32,9 @@ def load_bhavcopy(zip_path):
             return pd.read_csv(f)
 
 
+def main_entry_function():
+    pass
+
 
 if __name__ == "__main__":
 
@@ -43,8 +46,8 @@ if __name__ == "__main__":
         
     else:
         # if(datetime.now().time().hour > 10)
-        
-        # current_datetime = datetime(2025, 12, 16)
+        ## -- 
+        current_datetime = datetime(2026, 1, 14)
         
         current_datetime = datetime.now()
         ymd_date = current_datetime.strftime("%Y-%m-%d")
@@ -135,9 +138,10 @@ if __name__ == "__main__":
         save_path = os.path.join(save_folder, filename)
         final_df.to_excel(save_path, index=False)
 
-
+        
         print("Final stock report saved at:")
         print(save_path)
+
 
 
 
