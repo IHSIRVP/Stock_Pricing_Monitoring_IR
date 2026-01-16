@@ -15,3 +15,4 @@ Stock_Report.xlsx
 .StockEnv/
 stockEnv/
 newEnv/
+__pycache__/
