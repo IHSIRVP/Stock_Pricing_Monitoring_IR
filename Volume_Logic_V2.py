@@ -196,7 +196,7 @@ def update_combined_volume(target_date):
         # ---- MERGE ----
         nse_std = standardize(filtered_NSE, "NSE")
         bse_std = standardize(filtered_BSE, "BSE")
-
+        bse_std = bse_std.replace("INE298G01027", "INE298G01035")
         combined = pd.merge(
             nse_std,
             bse_std,
